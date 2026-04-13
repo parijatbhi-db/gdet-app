@@ -1,0 +1,107 @@
+erDiagram
+    extract_definitions {
+        string id PK
+        string name
+        string extract_type
+        string description
+        string country
+        string source_table FK
+        json columns_config
+        json parameters
+        string file_format
+        string delimiter
+        string encoding
+        string naming_template
+        string status
+        string sensitivity_level
+        string created_by
+        datetime created_at
+        datetime updated_at
+    }
+
+    extract_schedules {
+        string id PK
+        string extract_definition_id FK
+        string frequency
+        string cron_expression
+        boolean is_active
+        string job_id
+        datetime next_run_at
+        datetime last_run_at
+        datetime created_at
+    }
+
+    extract_runs {
+        string id PK
+        string extract_definition_id FK
+        string schedule_id FK
+        string status
+        int row_count
+        bigint file_size_bytes
+        string output_path
+        string triggered_by
+        string trigger_type
+        json parameters_used
+        string error_message
+        datetime started_at
+        datetime completed_at
+    }
+
+    audit_log {
+        string id PK
+        string action
+        string entity_type
+        string entity_id
+        string user_id
+        string user_email
+        datetime timestamp
+        json details
+        string ip_address
+    }
+
+    inventory_data {
+        string item_id PK
+        string location_code
+        int quantity_on_hand
+        decimal unit_cost
+        string country
+        date snapshot_date
+    }
+
+    pos_data {
+        string transaction_id PK
+        string location_code
+        string item_id
+        int units_sold
+        decimal revenue
+        string country
+        date sale_date
+    }
+
+    price_feed_data {
+        string price_id PK
+        string item_id
+        decimal list_price
+        decimal contract_price
+        string currency
+        string country
+        date effective_date
+    }
+
+    scip_reach_data {
+        string record_id PK
+        string customer_id
+        string item_id
+        int reach_score
+        string segment
+        string country
+        date period_date
+    }
+
+    extract_definitions ||--o{ extract_runs : "has runs"
+    extract_definitions ||--o{ extract_schedules : "has schedules"
+    extract_schedules ||--o{ extract_runs : "triggers"
+    extract_definitions }o--|| inventory_data : "may source"
+    extract_definitions }o--|| pos_data : "may source"
+    extract_definitions }o--|| price_feed_data : "may source"
+    extract_definitions }o--|| scip_reach_data : "may source"

@@ -1,0 +1,70 @@
+flowchart LR
+    User["🌐 User\n(Browser)"]
+
+    subgraph App["Databricks App (Compute)"]
+        direction TB
+        React["React Frontend\n(TypeScript + Vite)"]
+        FastAPI["FastAPI Backend\n(Python)"]
+        React <-->|"REST API"| FastAPI
+    end
+
+    subgraph Warehouse["Databricks SQL Warehouse"]
+        direction TB
+        SEA["Statement\nExecution API"]
+    end
+
+    subgraph UC["Unity Catalog · parijat_demos.gdet"]
+        direction TB
+        subgraph Meta["Metadata Tables"]
+            direction LR
+            ED["extract_definitions"]
+            ES["extract_schedules"]
+            ER["extract_runs"]
+            AL["audit_log"]
+        end
+        subgraph Source["Source Data Tables"]
+            direction LR
+            INV["inventory_data"]
+            POS["pos_data"]
+            PF["price_feed_data"]
+            SR["scip_reach_data"]
+        end
+    end
+
+    subgraph Volume["UC Volumes (File Storage)"]
+        VOL["/Volumes/parijat_demos\n/gdet/extract_output/"]
+    end
+
+    subgraph External["External Delivery (Production)"]
+        direction TB
+        SFTP["SFTP Server"]
+        API2["External API"]
+        CS["Cloud Storage\n(S3 / ADLS / GCS)"]
+    end
+
+    subgraph Sched["Databricks Workflows (Production)"]
+        WF["Scheduled Jobs\n(Cron / Triggers)"]
+    end
+
+    User -->|"HTTPS"| React
+    FastAPI -->|"SQL Queries"| SEA
+    SEA -->|"Read / Write\nMetadata"| Meta
+    SEA -->|"Query\nSource Data"| Source
+    FastAPI -->|"WorkspaceClient\nfiles.upload()"| Volume
+    Volume -->|"Download\nFiles"| FastAPI
+    FastAPI -.->|"Deliver Files"| External
+    Sched -.->|"Trigger Runs"| FastAPI
+
+    classDef compute fill:#D6E8F7,stroke:#005DA6,stroke-width:2px,color:#003366
+    classDef storage fill:#D6F0E0,stroke:#1E7E34,stroke-width:2px,color:#0A4D1C
+    classDef external fill:#FDE8CC,stroke:#CC6600,stroke-width:2px,color:#7A3C00
+    classDef governance fill:#EDE0F5,stroke:#6A0DAD,stroke-width:2px,color:#3D0066
+    classDef user fill:#FFFFFF,stroke:#005DA6,stroke-width:2px,color:#003366
+    classDef warehouse fill:#D6E8F7,stroke:#005DA6,stroke-width:2px,color:#003366
+
+    class App,React,FastAPI compute
+    class UC,Meta,Source,ED,ES,ER,AL,INV,POS,PF,SR governance
+    class Volume,VOL storage
+    class External,SFTP,API2,CS,Sched,WF external
+    class Warehouse,SEA warehouse
+    class User user

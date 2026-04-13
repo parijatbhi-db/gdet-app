@@ -1,0 +1,63 @@
+flowchart TD
+    Start(["User Opens GDET App"])
+
+    subgraph Dashboard["Dashboard"]
+        DB_Metrics["View Metrics\n(Total Extracts · Total Runs · Success Rate · Active Schedules)"]
+        DB_Table["Extract Definitions Table\n(Name · Type · Status · Last Run · Actions)"]
+        DB_Metrics --> DB_Table
+    end
+
+    subgraph Editor["Extract Editor"]
+        Step1["Step 1: Basic Info\n(Name, Type, Description, Country, Sensitivity Level)"]
+        Step2["Step 2: Columns\n(Auto-loaded from source table · Select/Deselect · Alias · Reorder)"]
+        Step3["Step 3: Parameters\n(Dynamic fields by extract type · date range, location, segment)"]
+        Step4["Step 4: File Config\n(Format · Delimiter · Encoding · Naming Template)"]
+        Step1 --> Step2 --> Step3 --> Step4
+        Step4 --> EA_Preview["Preview\n(First 100 rows shown in table below form)"]
+        Step4 --> EA_Save["Save Extract\n(POST or PUT /api/extracts)"]
+    end
+
+    subgraph RunFlow["Run Extract Flow"]
+        RF_Execute["Extract Executes\n(FastAPI builds SQL · runs query · generates file)"]
+        RF_Toast["Toast Notification\n(Success: N rows exported  /  Error: message)"]
+        RF_Refresh["Dashboard Refreshes\n(Updated run count + last run status)"]
+        RF_Execute --> RF_Toast --> RF_Refresh
+    end
+
+    subgraph RunHistory["Run History Page"]
+        RH_Filter["Filter by Status\n(All · Running · Success · Failed)"]
+        RH_Table["All Runs Table\n(ID · Extract · Status · Rows · File Size · Triggered By · Date)"]
+        RH_Download["Download File\n(Available for successful runs)"]
+        RH_Filter --> RH_Table --> RH_Download
+    end
+
+    subgraph AuditLog["Audit Log Page"]
+        AL_Filter["Filter by Action Type\n(create · update · delete · run · download)"]
+        AL_Table["All Actions Table\n(Action · Entity Type · Entity ID · User · Timestamp · Details)"]
+        AL_Filter --> AL_Table
+    end
+
+    Start --> Dashboard
+    DB_Table -->|"Click New Extract"| Editor
+    DB_Table -->|"Click Edit (pencil icon)"| Editor
+    DB_Table -->|"Click Run Now (play icon)"| RunFlow
+    RunFlow --> Dashboard
+    EA_Save -->|"Returns to Dashboard"| Dashboard
+    Dashboard -->|"Sidebar: Run History"| RunHistory
+    Dashboard -->|"Sidebar: Audit Log"| AuditLog
+
+    classDef startEnd fill:#005DA6,stroke:#003D7A,color:#FFFFFF,stroke-width:2px
+    classDef dashStyle fill:#D6E8F7,stroke:#005DA6,stroke-width:2px,color:#003366
+    classDef editorStyle fill:#EDE0F5,stroke:#6A0DAD,stroke-width:2px,color:#3D0066
+    classDef runStyle fill:#D6F0E0,stroke:#1E7E34,stroke-width:2px,color:#0A4D1C
+    classDef historyStyle fill:#FDE8CC,stroke:#CC6600,stroke-width:2px,color:#7A3C00
+    classDef auditStyle fill:#FDE8CC,stroke:#CC6600,stroke-width:2px,color:#7A3C00
+    classDef saveStyle fill:#FFFFFF,stroke:#6A0DAD,stroke-width:1.5px,color:#3D0066
+
+    class Start startEnd
+    class Dashboard,DB_Metrics,DB_Table dashStyle
+    class Editor,Step1,Step2,Step3,Step4 editorStyle
+    class RunFlow,RF_Execute,RF_Toast,RF_Refresh runStyle
+    class RunHistory,RH_Filter,RH_Table,RH_Download historyStyle
+    class AuditLog,AL_Filter,AL_Table auditStyle
+    class EA_Preview,EA_Save saveStyle

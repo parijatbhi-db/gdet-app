@@ -1,0 +1,74 @@
+sequenceDiagram
+    actor User as User
+    participant UI as React UI
+    participant API as FastAPI Backend
+    participant SQL as SQL Warehouse
+    participant UC as Unity Catalog Tables
+    participant Vol as UC Volume
+
+    User->>UI: Click "Run Extract"
+    activate UI
+
+    UI->>API: POST /api/extracts/{id}/run
+    activate API
+
+    Note over API,SQL: Initialize Run Record
+    API->>SQL: INSERT INTO extract_runs<br/>(status='running', triggered_by, started_at)
+    activate SQL
+    SQL-->>API: run_id returned
+    deactivate SQL
+
+    Note over API,SQL: Load Extract Definition
+    API->>SQL: SELECT * FROM extract_definitions WHERE id = {id}
+    activate SQL
+    SQL-->>API: definition (columns_config, parameters, source_table, file_format)
+    deactivate SQL
+
+    Note over API: Build Dynamic SQL
+    rect rgb(214, 232, 247)
+        API->>API: Parse columns_config JSON
+        API->>API: Apply parameter filters & WHERE clauses
+        API->>API: Construct SELECT statement with aliases
+    end
+
+    Note over API,SQL: Execute Extract Query
+    API->>SQL: Execute dynamic SELECT against source table
+    activate SQL
+    SQL->>UC: Scan source data table (inventory_data, pos_data, etc.)
+    activate UC
+    UC-->>SQL: Raw rows from source table
+    deactivate UC
+    SQL-->>API: Result set (rows + schema)
+    deactivate SQL
+
+    Note over API: Generate Output File
+    rect rgb(214, 240, 224)
+        API->>API: Format rows → CSV / JSON / XLSX
+        API->>API: Apply delimiter, encoding, naming template
+        API->>API: Compute row_count and file_size_bytes
+    end
+
+    API->>Vol: WorkspaceClient.files.upload(path, content)
+    activate Vol
+    Vol-->>API: Upload confirmed (output_path)
+    deactivate Vol
+
+    Note over API,SQL: Update Run Record
+    API->>SQL: UPDATE extract_runs SET<br/>status='success', row_count, file_size_bytes,<br/>output_path, completed_at WHERE id = {run_id}
+    activate SQL
+    SQL-->>API: Update confirmed
+    deactivate SQL
+
+    Note over API,SQL: Write Audit Entry
+    API->>SQL: INSERT INTO audit_log<br/>(action='extract_run', entity_id, user_id,<br/>timestamp, details JSON)
+    activate SQL
+    SQL-->>API: Audit entry saved
+    deactivate SQL
+
+    API-->>UI: 200 OK { run_id, status, row_count,<br/>file_size_bytes, output_path }
+    deactivate API
+
+    UI-->>User: Toast notification<br/>"Extract complete · 42,381 rows exported"
+    deactivate UI
+
+    Note over User,UI: Dashboard auto-refreshes run history
