@@ -70,7 +70,7 @@ export default function RunHistory() {
     queryFn: () => api.runs.list(params),
   });
 
-  const runs: any[] = Array.isArray(data) ? data : data?.items ?? [];
+  const runs: any[] = Array.isArray(data) ? data : data?.data ?? [];
 
   if (error) {
     return (
@@ -139,12 +139,12 @@ export default function RunHistory() {
               </TableHeader>
               <TableBody>
                 {runs.map((run: any) => (
-                  <TableRow key={run.run_id}>
+                  <TableRow key={run.id}>
                     <TableCell
                       className="font-mono text-xs text-muted-foreground"
-                      title={run.run_id}
+                      title={run.id}
                     >
-                      {run.run_id?.substring(0, 8)}...
+                      {run.id?.substring(0, 8)}...
                     </TableCell>
                     <TableCell className="font-medium">
                       {run.extract_name ?? run.definition_id}
@@ -183,8 +183,8 @@ export default function RunHistory() {
                       {formatDuration(run.started_at, run.completed_at)}
                     </TableCell>
                     <TableCell className="text-right">
-                      {run.rows_extracted != null
-                        ? Number(run.rows_extracted).toLocaleString()
+                      {run.row_count != null
+                        ? Number(run.row_count).toLocaleString()
                         : '-'}
                     </TableCell>
                     <TableCell className="text-right text-sm text-muted-foreground">
@@ -199,7 +199,7 @@ export default function RunHistory() {
                           asChild
                         >
                           <a
-                            href={api.runs.downloadUrl(run.run_id)}
+                            href={api.runs.downloadUrl(run.id)}
                             target="_blank"
                             rel="noopener noreferrer"
                           >

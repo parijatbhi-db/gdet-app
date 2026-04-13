@@ -40,8 +40,8 @@ export default function AuditLog() {
   const [page, setPage] = useState(0);
 
   const params: Record<string, string> = {
-    limit: String(PAGE_SIZE),
-    offset: String(page * PAGE_SIZE),
+    page: String(page + 1),
+    page_size: String(PAGE_SIZE),
   };
   if (actionFilter) params.action = actionFilter;
 
@@ -50,7 +50,7 @@ export default function AuditLog() {
     queryFn: () => api.audit.list(params),
   });
 
-  const entries: any[] = Array.isArray(data) ? data : data?.items ?? [];
+  const entries: any[] = Array.isArray(data) ? data : data?.data ?? [];
   const totalCount: number = data?.total ?? entries.length;
   const hasNextPage = (page + 1) * PAGE_SIZE < totalCount;
   const hasPrevPage = page > 0;
