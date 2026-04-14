@@ -67,7 +67,7 @@ export default function ExtractList({ onNavigate }: ExtractListProps) {
     queryFn: () => api.extracts.list(params),
   });
 
-  const extracts: any[] = Array.isArray(data) ? data : data?.items ?? [];
+  const extracts: any[] = Array.isArray(data) ? data : data?.data ?? [];
 
   const filtered = extracts.filter((ext: any) =>
     ext.name?.toLowerCase().includes(search.toLowerCase())
@@ -185,7 +185,7 @@ export default function ExtractList({ onNavigate }: ExtractListProps) {
               </TableHeader>
               <TableBody>
                 {filtered.map((ext: any) => (
-                  <TableRow key={ext.definition_id}>
+                  <TableRow key={ext.id}>
                     <TableCell className="font-medium">{ext.name}</TableCell>
                     <TableCell>
                       <Badge
@@ -222,7 +222,7 @@ export default function ExtractList({ onNavigate }: ExtractListProps) {
                           variant="ghost"
                           size="icon"
                           title="Edit"
-                          onClick={() => onNavigate('editor', ext.definition_id)}
+                          onClick={() => onNavigate('editor', ext.id)}
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
@@ -230,16 +230,16 @@ export default function ExtractList({ onNavigate }: ExtractListProps) {
                           variant="ghost"
                           size="icon"
                           title="Run Now"
-                          onClick={() => handleRun(ext.definition_id, ext.name)}
+                          onClick={() => handleRun(ext.id, ext.name)}
                         >
                           <Play className="h-4 w-4 text-green-600" />
                         </Button>
-                        {deletingId === ext.definition_id ? (
+                        {deletingId === ext.id ? (
                           <div className="flex items-center gap-1">
                             <Button
                               variant="destructive"
                               size="sm"
-                              onClick={() => handleDelete(ext.definition_id)}
+                              onClick={() => handleDelete(ext.id)}
                             >
                               Confirm
                             </Button>
@@ -256,7 +256,7 @@ export default function ExtractList({ onNavigate }: ExtractListProps) {
                             variant="ghost"
                             size="icon"
                             title="Delete"
-                            onClick={() => setDeletingId(ext.definition_id)}
+                            onClick={() => setDeletingId(ext.id)}
                           >
                             <Trash2 className="h-4 w-4 text-red-500" />
                           </Button>
