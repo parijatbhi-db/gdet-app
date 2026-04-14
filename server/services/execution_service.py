@@ -68,8 +68,9 @@ def execute_extract(
         date_str = datetime.utcnow().strftime("%Y-%m-%d")
         output_path = f"{output_dir}/{date_str}/{filename}"
 
+        import io
         w = get_workspace_client()
-        w.files.upload(output_path, file_bytes, overwrite=True)
+        w.files.upload(output_path, io.BytesIO(file_bytes), overwrite=True)
 
         file_size = len(file_bytes)
         completed = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")

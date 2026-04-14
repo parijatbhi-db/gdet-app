@@ -72,10 +72,18 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     setRunningId(defId);
     try {
       const result = await api.extracts.run(defId);
-      toast({
-        title: 'Extract started',
-        description: `"${defName}" completed with ${result.row_count ?? 0} rows.`,
-      });
+      if (result.status === 'failed') {
+        toast({
+          title: 'Extract failed',
+          description: `"${defName}" failed: ${result.error_message || 'Unknown error'}`,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Extract completed',
+          description: `"${defName}" completed with ${result.row_count ?? 0} rows.`,
+        });
+      }
       queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] });
       queryClient.invalidateQueries({ queryKey: ['extracts'] });
     } catch (err) {

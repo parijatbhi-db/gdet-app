@@ -139,76 +139,91 @@ export default function RunHistory() {
               </TableHeader>
               <TableBody>
                 {runs.map((run: any) => (
-                  <TableRow key={run.id}>
-                    <TableCell
-                      className="font-mono text-xs text-muted-foreground"
-                      title={run.id}
-                    >
-                      {run.id?.substring(0, 8)}...
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {run.extract_name ?? run.definition_id}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        className={cn(
-                          'border-0',
-                          TYPE_COLORS[run.extract_type] ?? 'bg-gray-100 text-gray-700'
-                        )}
+                  <>
+                    <TableRow key={run.id} className={run.status === 'failed' ? 'border-b-0' : ''}>
+                      <TableCell
+                        className="font-mono text-xs text-muted-foreground"
+                        title={run.id}
                       >
-                        {(run.extract_type ?? '').replace('_', ' ')}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        className={cn(
-                          'border-0',
-                          STATUS_COLORS[run.status] ?? 'bg-gray-100 text-gray-700'
-                        )}
-                      >
-                        {run.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                      {run.started_at
-                        ? format(new Date(run.started_at), 'MMM d, HH:mm:ss')
-                        : '-'}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                      {run.completed_at
-                        ? format(new Date(run.completed_at), 'MMM d, HH:mm:ss')
-                        : '-'}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {formatDuration(run.started_at, run.completed_at)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {run.row_count != null
-                        ? Number(run.row_count).toLocaleString()
-                        : '-'}
-                    </TableCell>
-                    <TableCell className="text-right text-sm text-muted-foreground">
-                      {formatFileSize(run.file_size_bytes)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {run.status === 'success' && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          title="Download"
-                          asChild
+                        {run.id?.substring(0, 8)}...
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {run.extract_name ?? run.extract_definition_id}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          className={cn(
+                            'border-0',
+                            TYPE_COLORS[run.extract_type] ?? 'bg-gray-100 text-gray-700'
+                          )}
                         >
-                          <a
-                            href={api.runs.downloadUrl(run.id)}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          {(run.extract_type ?? '').replace('_', ' ')}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          className={cn(
+                            'border-0',
+                            STATUS_COLORS[run.status] ?? 'bg-gray-100 text-gray-700'
+                          )}
+                        >
+                          {run.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                        {run.started_at
+                          ? format(new Date(run.started_at), 'MMM d, HH:mm:ss')
+                          : '-'}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                        {run.completed_at
+                          ? format(new Date(run.completed_at), 'MMM d, HH:mm:ss')
+                          : '-'}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {formatDuration(run.started_at, run.completed_at)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {run.row_count != null
+                          ? Number(run.row_count).toLocaleString()
+                          : '-'}
+                      </TableCell>
+                      <TableCell className="text-right text-sm text-muted-foreground">
+                        {formatFileSize(run.file_size_bytes)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {run.status === 'success' && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            title="Download"
+                            asChild
                           >
-                            <Download className="h-4 w-4 text-[#005DA6]" />
-                          </a>
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
+                            <a
+                              href={api.runs.downloadUrl(run.id)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <Download className="h-4 w-4 text-[#005DA6]" />
+                            </a>
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                    {run.status === 'failed' && run.error_message && (
+                      <TableRow key={`${run.id}-error`}>
+                        <TableCell colSpan={10} className="bg-red-50 py-2 px-4">
+                          <div className="flex items-start gap-2">
+                            <AlertCircle className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
+                            <div>
+                              <span className="text-xs font-medium text-red-700">Error: </span>
+                              <span className="text-xs text-red-600">{run.error_message}</span>
+                            </div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </>
                 ))}
               </TableBody>
             </Table>

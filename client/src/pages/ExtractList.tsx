@@ -75,8 +75,20 @@ export default function ExtractList({ onNavigate }: ExtractListProps) {
 
   const handleRun = async (id: string, name: string) => {
     try {
-      await api.extracts.run(id);
-      toast({ title: 'Run started', description: `Extract "${name}" is now running.` });
+      const result = await api.extracts.run(id);
+      if (result.status === 'failed') {
+        toast({
+          title: 'Extract failed',
+          description: `"${name}" failed: ${result.error_message || 'Unknown error'}`,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Extract completed',
+          description: `"${name}" completed with ${result.row_count ?? 0} rows.`,
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ['extracts'] });
     } catch (err) {
       toast({
         title: 'Run failed',
